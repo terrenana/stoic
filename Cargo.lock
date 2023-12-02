@@ -2248,6 +2248,7 @@ name = "stoic"
 version = "0.1.0"
 dependencies = [
  "eframe",
+ "indexmap",
  "nalgebra",
  "num",
 ]
