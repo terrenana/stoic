@@ -19,11 +19,11 @@ impl GaussianElimination {
         // The Gaussian-Jordan Algorithm
         let mut var_table = Vec::<usize>::new();
         for i in 0..self.n {
-            let mostleft_row = match self.get_leftmost_row(i) {
+            let most_left_row = match self.get_leftmost_row(i) {
                 Some(s) => s,
                 None => continue,
             };
-            let j = match self.get_pivot(mostleft_row) {
+            let j = match self.get_pivot(most_left_row) {
                 Some(s) => {
                     var_table.push(s);
                     s
@@ -114,7 +114,7 @@ impl GaussianElimination {
     fn get_leftmost_row(&self, row: usize) -> Option<usize> {
         let mut lock = false;
         // Use `lock` to prevent calculation from `usize` Overflow
-        let mut mostleft_row = row;
+        let mut most_left_row = row;
         let mut min_left: usize = match self.get_pivot(row) {
             Some(s) => s,
             None => {
@@ -128,7 +128,7 @@ impl GaussianElimination {
                 None => continue,
             };
             if (current_pivot < min_left) | (lock) {
-                mostleft_row = i;
+                most_left_row = i;
                 min_left = current_pivot;
                 lock = false;
             }
@@ -136,7 +136,7 @@ impl GaussianElimination {
         if lock {
             None
         } else {
-            Some(mostleft_row)
+            Some(most_left_row)
         }
     }
 

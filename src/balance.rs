@@ -21,16 +21,12 @@ impl Mul<&Side> for Ratio<isize> {
 pub struct Balancer;
 
 impl Balancer {
-    pub fn balance(equation: &str) -> Result<ChemicalEquation, String> {
-        let chem_eq = parser::parse(equation)?;
-        balance(chem_eq)
-    }
-    pub fn balance_real_time(equation: &str) -> String {
+    pub fn balance_real_time(equation: &str) -> ChemicalEquation {
         let eq = parser::parse(equation).unwrap_or(ChemicalEquation::empty());
         if let Ok(bal_eq) = balance(eq.clone()) {
-            bal_eq.to_string()
+            bal_eq
         } else {
-            eq.to_string()
+            eq
         }
     }
 }

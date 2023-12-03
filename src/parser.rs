@@ -1,5 +1,6 @@
+use crate::stoichiometry::str_to_molar_mass;
 use indexmap::IndexMap;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Display, Formatter, Write};
 
 #[derive(Debug, Clone)]
 enum Token {
@@ -27,34 +28,44 @@ pub(crate) enum Side {
 #[derive(Debug, Clone)]
 pub(crate) struct ChemicalEquation {
     pub(crate) terms: Vec<Compound>,
+    pub(crate) rhs_ix: usize,
 }
 
 impl ChemicalEquation {
     fn new(terms: Vec<Compound>) -> Self {
-        ChemicalEquation { terms }
+        let mut rhs_ix = terms.len();
+        for (i, cpd) in terms.iter().enumerate() {
+            if let Side::RHS = cpd.side {
+                rhs_ix = i;
+                break;
+            }
+        }
+        ChemicalEquation { terms, rhs_ix }
     }
     pub(crate) fn empty() -> Self {
-        ChemicalEquation { terms: Vec::new() }
+        ChemicalEquation {
+            terms: Vec::new(),
+            rhs_ix: 0,
+        }
     }
 }
 
 impl Display for ChemicalEquation {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut iter = self.terms.iter().peekable();
-        let mut rhs = false;
+        let mut iter = self.terms[0..self.rhs_ix].iter().peekable();
         while let Some(cpd) = iter.next() {
             write!(f, "{}", cpd)?;
-            if let Some(cpd) = iter.peek() {
-                if let Side::RHS = cpd.side {
-                    if rhs {
-                        write!(f, " + ")?;
-                    } else {
-                        write!(f, " = ")?;
-                        rhs = true;
-                    }
-                } else {
-                    write!(f, " + ")?;
-                }
+            if let None = iter.peek() {
+                write!(f, " = ")?;
+                break;
+            }
+            write!(f, " + ")?;
+        }
+        let mut iter = self.terms[self.rhs_ix..self.terms.len()].iter().peekable();
+        while let Some(cpd) = iter.next() {
+            write!(f, "{}", cpd)?;
+            if let Some(_) = iter.peek() {
+                write!(f, " + ")?;
             }
         }
         Ok(())
@@ -66,19 +77,23 @@ pub(crate) struct Compound {
     pub(crate) coefficient: usize,
     pub(crate) elements: IndexMap<String, usize>,
     pub(crate) side: Side,
+    pub(crate) molar_mass: f32,
 }
 
 impl Compound {
     fn new(elements_: &[Token], side: Side) -> Self {
+        let mut molar_mass = 0.0;
         let mut elements = IndexMap::new();
         let mut iter = elements_.into_iter().peekable();
         while let Some(token) = iter.next() {
             if let Token::Element(elem) = token {
                 if let Some(Token::Subscript(sub)) = iter.peek() {
                     elements.insert(elem.clone(), *sub);
+                    molar_mass += str_to_molar_mass(&elem) * *sub as f32;
                     iter.next();
                 } else {
                     elements.insert(elem.clone(), 1);
+                    molar_mass += str_to_molar_mass(&elem)
                 }
             }
         }
@@ -86,7 +101,18 @@ impl Compound {
             coefficient: 1,
             elements,
             side,
+            molar_mass,
         }
+    }
+    pub(crate) fn raw(&self) -> String {
+        let mut f = String::new();
+        for (elem, i) in &self.elements {
+            match i {
+                1 => write!(f, "{}", elem).unwrap(),
+                _ => write!(f, "{}{}", elem, i).unwrap(),
+            }
+        }
+        f
     }
 }
 
