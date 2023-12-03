@@ -1,16 +1,15 @@
 extern crate nalgebra as na;
 
 mod balance;
+mod interface;
 mod matrix;
 mod parser;
 
-use crate::balance::Balancer;
-use std::io::stdin;
-
-fn main() -> Result<(), String> {
-    loop {
-        let mut input = String::new();
-        stdin().read_line(&mut input).expect("unable");
-        println!("{}", Balancer::balance(&input));
-    }
+fn main() -> Result<(), eframe::Error> {
+    let native_options = eframe::NativeOptions::default();
+    eframe::run_native(
+        "stoic",
+        native_options,
+        Box::new(|cc| Box::new(interface::App::new(cc))),
+    )
 }

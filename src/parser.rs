@@ -44,13 +44,13 @@ impl Display for ChemicalEquation {
             if let Some(cpd) = iter.peek() {
                 if let Side::RHS = cpd.side {
                     if rhs {
-                        write!(f, "+")?;
+                        write!(f, " + ")?;
                     } else {
-                        write!(f, "=")?;
+                        write!(f, " = ")?;
                         rhs = true;
                     }
                 } else {
-                    write!(f, "+")?;
+                    write!(f, " + ")?;
                 }
             }
         }
