@@ -6,6 +6,7 @@ mod balance;
 mod interface;
 mod matrix;
 mod parser;
+mod stoichiometry;
 
 fn main() -> Result<(), eframe::Error> {
     let mut native_options = eframe::NativeOptions::default();

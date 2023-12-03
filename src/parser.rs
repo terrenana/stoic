@@ -27,34 +27,43 @@ pub(crate) enum Side {
 #[derive(Debug, Clone)]
 pub(crate) struct ChemicalEquation {
     pub(crate) terms: Vec<Compound>,
+    pub(crate) rhs_ix: usize,
 }
 
 impl ChemicalEquation {
     fn new(terms: Vec<Compound>) -> Self {
-        ChemicalEquation { terms }
+        let mut rhs_ix = terms.len();
+        for (i, cpd) in terms.iter().enumerate() {
+            if let Side::RHS = cpd.side {
+                rhs_ix = i;
+                break;
+            }
+        }
+        ChemicalEquation { terms, rhs_ix }
     }
     pub(crate) fn empty() -> Self {
-        ChemicalEquation { terms: Vec::new() }
+        ChemicalEquation {
+            terms: Vec::new(),
+            rhs_ix: 0,
+        }
     }
 }
 
 impl Display for ChemicalEquation {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut iter = self.terms.iter().peekable();
-        let mut rhs = false;
+        let mut iter = self.terms[0..self.rhs_ix].iter().peekable();
         while let Some(cpd) = iter.next() {
             write!(f, "{}", cpd)?;
-            if let Some(cpd) = iter.peek() {
-                if let Side::RHS = cpd.side {
-                    if rhs {
-                        write!(f, " + ")?;
-                    } else {
-                        write!(f, " = ")?;
-                        rhs = true;
-                    }
-                } else {
-                    write!(f, " + ")?;
-                }
+            if let None = iter.peek() {
+                write!(f, " = ")?;
+            }
+            write!(f, " + ")?;
+        }
+        let mut iter = self.terms[self.rhs_ix..self.terms.len()].iter().peekable();
+        while let Some(cpd) = iter.next() {
+            write!(f, "{}", cpd)?;
+            if let Some(_) = iter.peek() {
+                write!(f, " + ")?;
             }
         }
         Ok(())
