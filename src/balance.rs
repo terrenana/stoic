@@ -21,13 +21,21 @@ impl Mul<&Side> for Ratio<isize> {
 pub struct Balancer;
 
 impl Balancer {
-    pub fn balance(equation: &str) -> ChemicalEquation {
-        let chem_eq = parser::parse(equation).unwrap();
+    pub fn balance(equation: &str) -> Result<ChemicalEquation, String> {
+        let chem_eq = parser::parse(equation)?;
         balance(chem_eq)
+    }
+    pub fn balance_real_time(equation: &str) -> String {
+        let eq = parser::parse(equation).unwrap_or(ChemicalEquation::empty());
+        if let Ok(bal_eq) = balance(eq.clone()) {
+            bal_eq.to_string()
+        } else {
+            eq.to_string()
+        }
     }
 }
 
-fn balance(eq: ChemicalEquation) -> ChemicalEquation {
+fn balance(eq: ChemicalEquation) -> Result<ChemicalEquation, String> {
     let mut elements = HashMap::new();
     for cpd in eq.terms.iter() {
         for elem in cpd.elements.keys() {
@@ -53,7 +61,7 @@ fn balance(eq: ChemicalEquation) -> ChemicalEquation {
     }
 
     let coeffs = GaussianElimination::new(eq_matrix)
-        .solve()
+        .solve()?
         .into_iter()
         .map(|v| {
             let lcm = v.iter().fold(1, |lcm, ratio| lcm.lcm(ratio.denom()));
@@ -62,11 +70,11 @@ fn balance(eq: ChemicalEquation) -> ChemicalEquation {
                 .collect::<Vec<_>>()
         })
         .flatten()
-        .map(|int| int.to_usize().unwrap())
+        .map(|int| int.to_usize().unwrap_or(1))
         .collect::<Vec<_>>();
     let mut eq = eq;
     for (i, cpd) in eq.terms.iter_mut().enumerate() {
-        cpd.coefficient = coeffs[i];
+        cpd.coefficient = coeffs[i].max(1);
     }
-    eq
+    Ok(eq)
 }

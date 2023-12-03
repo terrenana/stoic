@@ -24,7 +24,7 @@ pub(crate) enum Side {
     RHS,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct ChemicalEquation {
     pub(crate) terms: Vec<Compound>,
 }
@@ -32,6 +32,9 @@ pub(crate) struct ChemicalEquation {
 impl ChemicalEquation {
     fn new(terms: Vec<Compound>) -> Self {
         ChemicalEquation { terms }
+    }
+    pub(crate) fn empty() -> Self {
+        ChemicalEquation { terms: Vec::new() }
     }
 }
 
@@ -58,7 +61,7 @@ impl Display for ChemicalEquation {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub(crate) struct Compound {
     pub(crate) coefficient: usize,
     pub(crate) elements: IndexMap<String, usize>,

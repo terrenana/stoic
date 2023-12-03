@@ -15,7 +15,7 @@ impl GaussianElimination {
         Self { matrix_a, n, m }
     }
 
-    pub fn solve(mut self) -> Vec<Vec<Ratio<isize>>> {
+    pub fn solve(mut self) -> Result<Vec<Vec<Ratio<isize>>>, String> {
         // The Gaussian-Jordan Algorithm
         let mut var_table = Vec::<usize>::new();
         for i in 0..self.n {
@@ -84,9 +84,9 @@ impl GaussianElimination {
             }
         }
         if ans.is_empty() {
-            panic!("no solution")
+            Err("no solution".to_string())
         } else {
-            ans
+            Ok(ans)
         }
     }
 
